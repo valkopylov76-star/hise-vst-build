@@ -29,15 +29,25 @@ jobs:
     - name: Compile VST Plugin
       shell: cmd
       run: |
+        :: Настраиваем глобальное окружение MinGW для батника
+        set MINGW_PATH=C:\msys64\mingw32
         set PATH=C:\msys64\mingw32\bin;C:\msys64\usr\bin;%PATH%
         set CC=gcc
         set CXX=g++
+        
         cd /d C:\MyFirstVST
+        
+        :: Запускаем батник в режиме отладки (выводим каждую строчку выполнения)
         for /r %%i in (*.bat) do (
             echo ====================================
             echo [FOUND AND RUNNING]: %%i
             echo ====================================
+            
+            :: Включаем эхо внутри командной строки, чтобы видеть, на какой строке батника падает система
+            @echo on
             call "%%i"
+            @echo off
+            
             goto :exit_loop
         )
         :exit_loop
