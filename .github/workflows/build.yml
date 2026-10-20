@@ -11,10 +11,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Правильная распаковка: создаем папку MyFirstVST и кладем файлы внутрь
     - name: Unpack project sources
       shell: powershell
       run: |
-        Expand-Archive -Path "MyFirstVST.zip" -DestinationPath "C:\" -Force
+        New-Item -ItemType Directory -Force -Path "C:\MyFirstVST"
+        Expand-Archive -Path "MyFirstVST.zip" -DestinationPath "C:\MyFirstVST" -Force
 
     - name: Set up MinGW 32-bit (i686)
       uses: msys2/setup-msys2@v2
@@ -29,25 +31,20 @@ jobs:
     - name: Compile VST Plugin
       shell: cmd
       run: |
-        :: Настраиваем глобальное окружение MinGW для батника
-        set MINGW_PATH=C:\msys64\mingw32
         set PATH=C:\msys64\mingw32\bin;C:\msys64\usr\bin;%PATH%
         set CC=gcc
         set CXX=g++
         
         cd /d C:\MyFirstVST
         
-        :: Запускаем батник в режиме отладки (выводим каждую строчку выполнения)
-        for /r %%i in (*.bat) do (
+        :: Автоматически находим ваш батник в корне папки MyFirstVST и запускаем его
+        for %%i in (*.bat) do (
             echo ====================================
-            echo [FOUND AND RUNNING]: %%i
+            echo [RUNNING SCRIPT]: %%i
             echo ====================================
-            
-            :: Включаем эхо внутри командной строки, чтобы видеть, на какой строке батника падает система
             @echo on
             call "%%i"
             @echo off
-            
             goto :exit_loop
         )
         :exit_loop
