@@ -24,20 +24,15 @@ jobs:
           mingw-w64-i686-gcc
           mingw-w64-i686-make
         update: true
-        # Глушим предупреждение об устаревании 32-битной среды MSYS2
         suppress-deprecation-warnings: msystem-mingw32
 
     - name: Compile VST Plugin
       shell: cmd
       run: |
-        :: Прописываем жесткие пути к компиляторам MinGW-w64 32-bit для вашего батника
         set PATH=C:\msys64\mingw32\bin;C:\msys64\usr\bin;%PATH%
         set CC=gcc
         set CXX=g++
-        
         cd /d C:\MyFirstVST
-        
-        :: Запуск батника с выводом всех шагов
         for /r %%i in (*.bat) do (
             echo ====================================
             echo [FOUND AND RUNNING]: %%i
@@ -49,11 +44,6 @@ jobs:
         echo Script execution finished.
 
     - name: Upload VST2 Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Hise-VST2-32bit
-        path: C:\MyFirstVST\**\Hise.dll
-        if-no-files-found: error
       uses: actions/upload-artifact@v4
       with:
         name: Hise-VST2-32bit
