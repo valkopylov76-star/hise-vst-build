@@ -1,0 +1,46 @@
+name: Build HISE 32-bit VST
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Unpack project sources
+      shell: powershell
+      run: |
+        Expand-Archive -Path "MyFirstVST.zip" -DestinationPath "C:\" -Force
+
+    - name: Set up MinGW 32-bit (i686)
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW32
+        install: >-
+          mingw-w64-i686-gcc
+          mingw-w64-i686-make
+        update: true
+
+    - name: Compile VST Plugin
+      shell: cmd
+      run: |
+        set PATH=C:\msys64\mingw32\bin;C:\msys64\usr\bin;%PATH%
+        cd /d C:\MyFirstVST
+        for /r %%i in (*.bat) do (
+            echo Launching script: %%i
+            call "%%i"
+            goto :exit_loop
+        )
+        :exit_loop
+        echo Script execution finished.
+
+    - name: Upload VST2 Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Hise-VST2-32bit
+        path: C:\MyFirstVST\**\Hise.dll
+        if-no-files-found: error
