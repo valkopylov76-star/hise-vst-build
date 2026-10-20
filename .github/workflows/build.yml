@@ -11,13 +11,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Правильная распаковка: создаем папку MyFirstVST и кладем файлы внутрь
+    # Распаковываем файлы в структуру C:\MyFirstVST
     - name: Unpack project sources
       shell: powershell
       run: |
         New-Item -ItemType Directory -Force -Path "C:\MyFirstVST"
         Expand-Archive -Path "MyFirstVST.zip" -DestinationPath "C:\MyFirstVST" -Force
 
+    # Разворачиваем 32-битный компилятор
     - name: Set up MinGW 32-bit (i686)
       uses: msys2/setup-msys2@v2
       with:
@@ -28,6 +29,7 @@ jobs:
         update: true
         suppress-deprecation-warnings: msystem-mingw32
 
+    # Заходим в Binaries и запускаем компиляцию
     - name: Compile VST Plugin
       shell: cmd
       run: |
@@ -35,24 +37,25 @@ jobs:
         set CC=gcc
         set CXX=g++
         
-        cd /d C:\MyFirstVST
+        :: Переходим напрямую в папку с вашим батником
+        cd /d C:\MyFirstVST\Binaries
         
-        :: Автоматически находим ваш батник в корне папки MyFirstVST и запускаем его
-        for %%i in (*.bat) do (
-            echo ====================================
-            echo [RUNNING SCRIPT]: %%i
-            echo ====================================
-            @echo on
+        echo === ЗАПУСК СБОРКИ В ПАПКЕ BINARIES ===
+        @echo on
+        :: Скрипт автоматически найдет любой батник в этой папке и выполнит его
+        for %%i in (*.bat *.cmd) do (
             call "%%i"
-            @echo off
             goto :exit_loop
         )
         :exit_loop
-        echo Script execution finished.
+        @echo off
+        echo Скрипт батника завершил работу.
 
+    # Сохраняем результат
     - name: Upload VST2 Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Hise-VST2-32bit
-        path: C:\MyFirstVST\**\Hise.dll
+        :: Ищем созданную DLL по всему проекту, включая папки внутри Binaries
+        path: C:\MyFirstVST\**\*Hise*.dll
         if-no-files-found: error
